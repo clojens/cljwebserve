@@ -1,13 +1,15 @@
 (ns cljwebserve.services
   (:use [cljwebserve status])
+  (:require [clojure string])
   (:use [clojure.contrib.string :only [split]]))
 
 (in-ns 'cljwebserve.services)
 
-(defn parse-clojure-request
+(defn- parse-clojure-request
   "Parses a request of as follows:
    _-/+/3/4/5/-_ -> (+ 3 4 5)"
   [clojure-request]
+  
   (let [cleaned-request (clojure.string/replace
                          (clojure.string/replace
                           (clojure.string/replace clojure-request #"_-/" "(")
@@ -15,7 +17,10 @@
                          #"/" " ")]
     cleaned-request))
 
-(defn parse-input [input]
+(defn- parse-input 
+  "Parses a request into a map."
+  [input]
+  
   (let [header-string (. input readLine)
         [type location protocol] (clojure.string/split header-string #" " )
         header {:type type
@@ -46,17 +51,20 @@
   (. output println (str (parse-input input)))
   (. output close))
 
-(defn handle-files
-  [input output]
-  (let [parsed-request (parse-input input)
-        pwd (System/getProperty "user.dir")]
-    (print parsed-request)
-    (if (= (get parsed-request :type) "GET")
-      (try (let [response (slurp (str pwd (get parsed-request :location)))]
-             (println response)
-             (. output print response))
-           (catch java.io.FileNotFoundException e (. output println (status 404 "nope"))))))
-  (. output close))
+(defn handle-files-generator
+  [root]
+  (fn [input output]
+    (let [parsed-request (parse-input input)
+          pwd (str (System/getProperty "user.dir") root)]
+      (print parsed-request)
+      (if (= (get parsed-request :type) "GET")
+        (try (let [response (slurp (str pwd (get parsed-request :location)))]
+               (println response)
+               (. output print response))
+             (catch java.io.FileNotFoundException e (. output println (status 404 "nope"))))))
+    (. output close)))
+
+(def handle-files (handle-files-generator ""))
 
 (defn handle-clojure
   [input output]
