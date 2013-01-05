@@ -53,16 +53,17 @@
 
 (defn handle-files-generator
   [root]
-  (fn [input output]
-    (let [parsed-request (parse-input input)
-          pwd (str (System/getProperty "user.dir") root)]
-      (print parsed-request)
-      (if (= (get parsed-request :type) "GET")
-        (try (let [response (slurp (str pwd (get parsed-request :location)))]
-               (println response)
-               (. output print response))
-             (catch java.io.FileNotFoundException e (. output println (status 404 "nope"))))))
-    (. output close)))
+  (let [pwd (str (System/getProperty "user.dir") "/" root)]
+    (println pwd)
+    (fn [input output]
+      (let [parsed-request (parse-input input)]
+        (print parsed-request)
+        (if (= (get parsed-request :type) "GET")
+          (try (let [response (slurp (str pwd (get parsed-request :location)))]
+                 (println response)
+                 (. output print response))
+               (catch java.io.FileNotFoundException e (. output println (status 404 "nope"))))))
+      (. output close))))
 
 (def handle-files (handle-files-generator ""))
 
