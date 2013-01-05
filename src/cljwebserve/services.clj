@@ -20,21 +20,28 @@
 (defn- parse-input 
   "Parses a request into a map."
   [input]
-  
-  (let [header-string (. input readLine)
-        [type location protocol] (clojure.string/split header-string #" " )
-        header {:type type
-                :location location
-                :protocol protocol}
-        parser-regexp #"^([^:]+):[ \t]*(.*)$"]
-    (print header-string)
-    (into header (loop [line (. input readLine)
-                        result {}]
-                   (if (= line "") result
-                       (let [matches (re-find parser-regexp line)
-                             [key-str val-str] (take 2 (rest matches))]
-                         (recur (. input readLine)
-                                (into result {(keyword key-str) val-str}))))))))
+  (letfn [(modify-parsed-input [parsed-input]
+            (if (= (:location parsed-input) "/")
+              (assoc parsed-input :location "/index.html")
+              parsed-input))]
+    (let [header-string (. input readLine)
+          [type location protocol] (clojure.string/split header-string #" " )
+          header {:type type
+                  :location location
+                  :protocol protocol}
+          parser-regexp #"^([^:]+):[ \t]*(.*)$"]
+      (println header-string)
+      (let [parsed-input (into header (loop [line (. input readLine)
+                                             result {}]
+                                        (if (= line "") result
+                                            (let [matches (re-find parser-regexp line)
+                                                  [key-str val-str] (take 2 (rest matches))]
+                                              (recur (. input readLine)
+                                                     (into result {(keyword key-str) val-str}))))))]
+        (modify-parsed-input parsed-input)))))
+        
+
+
 
 (defn echo [input output]
   (loop [line (. input readLine)]
