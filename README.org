@@ -4,18 +4,18 @@
   any of them on purpose.  Have at it.
 
 ** Usage
-   spin up a simple server to spit out files on port 3000:
-   (run-server 3000 handle-files)
+   + Spin up a simple server to spit out files on port 3000:
+     + (run-server 3000 handle-files)
 
-   spin up another server which parses the url into clojure:
-   (run server 3001 handle-clojure)
+   + Spin up another server which parses the url into clojure:
+     + (run server 3001 handle-clojure)
 
-   get some data regarding the first server
-   (:3000 @servers)
+   + Get some data regarding the first server:
+     + (:3000 @servers)
 
-   kill the servers
-   (stop-server 3000)
-   (stop-server 3001)
+   + Kill the servers:
+     + (stop-server 3000)
+     + (stop-server 3001)
 
 ** Clojure Parser
    Parses a request of as follows:
