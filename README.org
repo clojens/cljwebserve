@@ -1,3 +1,27 @@
-* cljwebserve
-** Wicked simple webserver
-Go Nuts.
+* Wicked Simple Webserver
+  cljwebserve is a simple concurrent webserver that I wrote to host my
+  site.  It doesn't conform to any standards because I've never read
+  any of them on purpose.  Have at it.
+
+** Usage
+   spin up a simple server to spit out files on port 3000:
+   (run-server 3000 handle-files)
+
+   spin up another server which parses the url into clojure:
+   (run server 3001 handle-clojure)
+
+   get some data regarding the first server
+   (:3000 @servers)
+
+   kill the servers
+   (stop-server 3000)
+   (stop-server 3001)
+
+** Clojure Parser
+   Parses a request of as follows:
+   www.someplace.com/_-/+/3/4/5/-_ -> (+ 3 4 5)
+
+   Then, it evals the parsed request.  
+
+   This is incredibly safe and not at all a terrible idea. Regardless,
+   you probably don't want to open these ports to the world.
