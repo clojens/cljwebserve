@@ -40,11 +40,12 @@
             (run-server-agent
               [agent-var port service]
               (let [server-socket (create-socket port)]
-                (letfn [(listen-and-respond [server-agent server-socket service]
+                (letfn [(accept-and-serve [server-agent server-socket service]
                           (let [client (. server-socket accept)
                                 input  (get-reader client)
                                 output (get-writer client)]
-                            (send server-agent (fn [dummy input output] (service input output)) input output)))]
+                            (send server-agent (fn [dummy input output] (service input output)) input output)
+                            '(release-pending-sends)))]
                   (let [server-agent (agent 0)]
                     
                     (util/with-release
@@ -63,9 +64,10 @@
                        port
                        service
                        server-socket))
-                    (while (not (. server-socket isClosed))
+                    (while true
                       (util/with-release
-                        (listen-and-respond server-agent server-socket service)))))))]
+                        (accept-and-serve server-agent server-socket service))
+                      )))))]
       (send-off coordination-agent run-server-agent port service))))
 
 (defn stop-server
@@ -75,7 +77,3 @@
     (let [keyport (keyword (str port))
           server-structure (keyport @servers)]
       (. (:socket server-structure) close))))
-      
-
-    
-  

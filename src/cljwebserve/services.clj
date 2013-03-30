@@ -61,13 +61,10 @@
 (defn handle-files-generator
   [root]
   (let [pwd (str (System/getProperty "user.dir") "/" root)]
-    (println pwd)
     (fn [input output]
       (let [parsed-request (parse-input input)]
-        (print parsed-request)
         (if (= (get parsed-request :type) "GET")
           (try (let [response (slurp (str pwd (get parsed-request :location)))]
-                 (println response)
                  (. output print response))
                (catch java.io.FileNotFoundException e (. output println (status 404 "nope"))))))
       (. output close))))
@@ -82,4 +79,31 @@
         (. output print (str (load-string parsed-request))))))
   (. output close))
     
-        
+(defn serve-up-this-form-alright?
+  [input output]
+  (let [parsed-input (parse-input input)
+        form-string "<html><body><form action=\"/response\" method=\"POST\"><input name=\"the-field\" type=\"text\" /><input type=\"submit\" value=\"Submit\"></form></body></html>"]
+    (cond
+      (= (:type parsed-input) "GET") (do
+                                       (println "in get")
+                                       (. output println form-string)
+                                       (. output flush)
+                                       (. output close)
+                                       )
+      (= (:type parsed-input) "POST") (do
+                                        (println "in post")
+                                        '(let [parsed-input (parse-input input)]
+                                           (println "parsed-it")
+                                           (. output println (str parsed-input)))
+                                        (. output println (. input readLine))
+                                        (. output close)))))
+(defn read-eval-print
+  [input output]
+  (let [eof (new Object)
+        form (. input readLine)
+        result (eval (read form false eof))]
+    (println form)
+    (println (str result))
+    (. output println (str result "\r")))
+  (. output close))
+    
